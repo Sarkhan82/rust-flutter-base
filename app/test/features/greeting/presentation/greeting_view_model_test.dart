@@ -1,40 +1,45 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:rust_flutter_base/core/di/providers.dart';
-import 'package:rust_flutter_base/core/rust/rust_bridge.dart';
+import 'package:rust_flutter_base/features/greeting/data/datasources/greeting_remote_data_source.dart';
+import 'package:rust_flutter_base/features/greeting/greeting_providers.dart';
 import 'package:rust_flutter_base/features/greeting/presentation/view_models/greeting_view_model.dart';
 
-/// Stub contrôlable du pont Rust (succès ou échec FFI).
-class _StubBridge implements RustBridge {
-  _StubBridge({this.shouldThrow = false});
+/// Fake contrôlable de la datasource HTTP (succès ou échec réseau).
+class _FakeDataSource implements GreetingRemoteDataSource {
+  _FakeDataSource({this.shouldThrow = false});
   final bool shouldThrow;
 
   @override
-  Future<void> init() async {}
-
-  @override
-  Future<String> greet(String name) async {
-    if (shouldThrow) throw Exception('ffi error');
+  Future<String> fetchGreeting(String name) async {
+    if (shouldThrow) {
+      throw DioException.connectionError(
+        requestOptions: RequestOptions(path: '/api/v1/greeting'),
+        reason: 'connection refused',
+      );
+    }
     return 'Hi $name';
   }
 }
 
-ProviderContainer _containerWith(RustBridge bridge) {
+ProviderContainer _containerWith(GreetingRemoteDataSource dataSource) {
   return ProviderContainer(
-    overrides: [rustBridgeProvider.overrideWithValue(bridge)],
+    overrides: [
+      greetingRemoteDataSourceProvider.overrideWithValue(dataSource),
+    ],
   );
 }
 
 void main() {
   test('état initial = GreetingIdle', () {
-    final container = _containerWith(_StubBridge());
+    final container = _containerWith(_FakeDataSource());
     addTearDown(container.dispose);
 
     expect(container.read(greetingViewModelProvider), isA<GreetingIdle>());
   });
 
-  test('input valide → GreetingSuccess avec le message de Rust', () async {
-    final container = _containerWith(_StubBridge());
+  test('input valide → GreetingSuccess avec le message du backend', () async {
+    final container = _containerWith(_FakeDataSource());
     addTearDown(container.dispose);
 
     await container.read(greetingViewModelProvider.notifier).greet('Ada');
@@ -45,7 +50,7 @@ void main() {
   });
 
   test('nom vide → GreetingFailure (validation)', () async {
-    final container = _containerWith(_StubBridge());
+    final container = _containerWith(_FakeDataSource());
     addTearDown(container.dispose);
 
     await container.read(greetingViewModelProvider.notifier).greet('   ');
@@ -53,8 +58,8 @@ void main() {
     expect(container.read(greetingViewModelProvider), isA<GreetingFailure>());
   });
 
-  test('échec FFI → GreetingFailure', () async {
-    final container = _containerWith(_StubBridge(shouldThrow: true));
+  test('échec réseau → GreetingFailure', () async {
+    final container = _containerWith(_FakeDataSource(shouldThrow: true));
     addTearDown(container.dispose);
 
     await container.read(greetingViewModelProvider.notifier).greet('Ada');

@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:rust_flutter_base/core/di/providers.dart';
-import 'package:rust_flutter_base/core/rust/rust_bridge.dart';
+import 'package:rust_flutter_base/features/greeting/data/datasources/greeting_remote_data_source.dart';
+import 'package:rust_flutter_base/features/greeting/greeting_providers.dart';
 import 'package:rust_flutter_base/features/greeting/presentation/views/greeting_screen.dart';
 import 'package:rust_flutter_base/l10n/generated/app_localizations.dart';
 
-class _StubBridge implements RustBridge {
+/// Fake datasource : renvoie un message déterministe, zéro I/O réseau.
+class _FakeDataSource implements GreetingRemoteDataSource {
   @override
-  Future<void> init() async {}
-  @override
-  Future<String> greet(String name) async => 'Hi $name';
+  Future<String> fetchGreeting(String name) async => 'Hi $name';
 }
 
 Widget _wrap() => ProviderScope(
-      overrides: [rustBridgeProvider.overrideWithValue(_StubBridge())],
+      overrides: [
+        greetingRemoteDataSourceProvider.overrideWithValue(_FakeDataSource()),
+      ],
       child: const MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
@@ -23,7 +24,7 @@ Widget _wrap() => ProviderScope(
     );
 
 void main() {
-  testWidgets('saisie + tap → affiche la salutation calculée par Rust',
+  testWidgets('saisie + tap → affiche la salutation renvoyée par le backend',
       (tester) async {
     await tester.pumpWidget(_wrap());
 

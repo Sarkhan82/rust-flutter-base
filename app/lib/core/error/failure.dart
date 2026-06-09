@@ -2,8 +2,8 @@ import 'package:equatable/equatable.dart';
 
 /// Hiérarchie typée des erreurs métier remontées à l'UI.
 ///
-/// Chaque couche convertit ses erreurs techniques (exceptions, codes FFI…) en
-/// un [Failure] à sa frontière. L'UI n'affiche jamais une exception brute.
+/// Chaque couche convertit ses erreurs techniques (exceptions, erreurs HTTP…)
+/// en un [Failure] à sa frontière. L'UI n'affiche jamais une exception brute.
 sealed class Failure extends Equatable {
   const Failure(this.message);
 
@@ -14,9 +14,10 @@ sealed class Failure extends Equatable {
   List<Object?> get props => [message];
 }
 
-/// Échec de communication avec le cœur Rust / FFI.
-final class RustFailure extends Failure {
-  const RustFailure(super.message);
+/// Échec de communication réseau avec le backend Rust (timeout, connexion
+/// refusée, status HTTP ≥ 400, réponse malformée).
+final class NetworkFailure extends Failure {
+  const NetworkFailure(super.message);
 }
 
 /// Donnée d'entrée invalide (validation côté domaine).

@@ -8,6 +8,10 @@ environment:
   flutter: ">=3.24.0"
 
 dependencies:
+  # Client HTTP vers le backend Rust : intercepteurs, baseUrl par flavor,
+  # timeouts typés, erreurs remontées en DioException (catchées à la frontière
+  # I/O par le repository). Pas de FFI : deux process distincts (cf. CLAUDE.md).
+  dio: ^5.7.0
   # Valeurs immuables / égalité de valeur sans boilerplate
   equatable: ^2.0.5
   flutter:

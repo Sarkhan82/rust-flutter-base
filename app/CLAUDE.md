@@ -26,14 +26,29 @@ Règles d'architecture et conventions de la partie Flutter du monorepo
   classe domaine qui `import 'flutter_riverpod'` ou un fichier `data/` est un
   bug d'architecture.
 
-## Intégration Rust
+## Intégration Rust (HTTP/REST — pas de FFI)
 
-- Le cœur Rust est consommé **uniquement** via l'interface `RustBridge`
-  (`core/rust/rust_bridge.dart`). Aucune couche ne référence directement les
-  bindings FFI.
-- Impl courante : `FakeRustBridge` (factice), injectée par `rustBridgeProvider`.
-- Pour brancher le vrai Rust : implémenter `RustBridge` avec les bindings
-  générés et **overrider `rustBridgeProvider`** au boot. Rien d'autre ne change.
+- L'app parle au backend Rust **uniquement via HTTP/REST** : deux process
+  distincts. **Pas de FFI.** Le backend est la source de vérité du contrat
+  d'API (cf. CLAUDE.md racine).
+- Client HTTP transverse = **Dio**, construit par `dioProvider`
+  (`core/di/providers.dart`) via `createDio()` (`core/network/dio_client.dart`).
+  Sa `baseUrl` vient **toujours** du flavor courant (`AppConfig.apiBaseUrl`),
+  jamais en dur.
+- Chaque feature accède au backend via une **datasource** dédiée qui injecte le
+  `Dio` (ex : `GreetingHttpDataSource` derrière l'interface
+  `GreetingRemoteDataSource`). Le chemin de version `/api/v1` est porté par la
+  datasource (bumper l'API = changer la datasource, pas la config).
+- Mapping erreur : la datasource peut lever (`DioException`, `FormatException`) ;
+  le **repository** catch à la frontière I/O et convertit en `NetworkFailure`.
+  Aucune exception réseau ne remonte au domaine/UI.
+- **Base URL par flavor** : `dev` (backend local `:8080`, plateforme-aware —
+  `10.0.2.2` émulateur Android, `127.0.0.1` iOS sim/desktop, surchargeable via
+  `--dart-define=API_BASE_URL=...`), `staging`, `prod`. Un entrypoint
+  `lib/main_<flavor>.dart` par flavor.
+- Tests : on override la **datasource** de la feature
+  (`greetingRemoteDataSourceProvider`) avec un fake/mock — pas besoin de toucher
+  à `dioProvider` ni de réseau réel.
 
 ## State management
 
@@ -46,7 +61,7 @@ Règles d'architecture et conventions de la partie Flutter du monorepo
 
 - Fichiers `snake_case`. Types `PascalCase`. Membres `camelCase`.
 - Suffixes : `...Screen`, `...ViewModel`, `...State`, `...Repository`,
-  `...Service`, `...Dto`, `...UseCase` (classe `call()`).
+  `...DataSource`, `...Dto`, `...UseCase` (classe `call()`).
 - Tests : miroir de `lib/` sous `test/`, suffixe `_test.dart`.
 
 ## Règles de code
@@ -65,8 +80,9 @@ Règles d'architecture et conventions de la partie Flutter du monorepo
 
 - Pyramide : surtout du unit (ViewModels, UseCases, Repositories, mappers),
   puis widget, puis integration.
-- **Mock à la frontière** (`RustBridge` / services), jamais la logique métier.
-  `mocktail` + overrides de providers Riverpod.
+- **Mock à la frontière** (datasources HTTP), jamais la logique métier.
+  `mocktail` + overrides de providers Riverpod (override la datasource de la
+  feature, pas `dioProvider`).
 
 ## Bascule codegen (optionnelle, quand le SDK + build_runner sont dispo)
 

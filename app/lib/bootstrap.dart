@@ -12,7 +12,8 @@ import 'package:rust_flutter_base/core/observability/logger.dart';
 /// Point d'entrée commun à tous les flavors.
 ///
 /// Centralise : capture globale des erreurs, override de la config par flavor,
-/// init du pont Rust, montage du [ProviderScope].
+/// montage du [ProviderScope]. Le client HTTP (`dioProvider`) est paresseux :
+/// il se construit à la première requête, pas besoin d'init au boot.
 Future<void> bootstrap(AppConfig config) async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -28,13 +29,8 @@ Future<void> bootstrap(AppConfig config) async {
       final container = ProviderContainer(
         overrides: [
           appConfigProvider.overrideWithValue(config),
-          // Pour brancher le vrai Rust : remplacer la ligne ci-dessous par
-          //   rustBridgeProvider.overrideWithValue(FrbRustBridge()),
         ],
       );
-
-      // Initialise le pont avant le premier frame.
-      await container.read(rustBridgeProvider).init();
 
       runApp(
         UncontrolledProviderScope(
