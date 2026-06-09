@@ -7,6 +7,9 @@ edition = "2024"
 rust-version = "1.85"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/Sarkhan82/rust-flutter-base"
+# Crates internes : jamais publiées sur crates.io (template, path-deps).
+# Permet aussi à cargo-deny d'exempter les path-deps du ban wildcard.
+publish = false
 
 [workspace.dependencies]
 # crates internes

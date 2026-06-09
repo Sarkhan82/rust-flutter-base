@@ -22,7 +22,11 @@ confidence-threshold = 0.9
 
 [bans]
 multiple-versions = "warn"
+# Interdit les dépendances externes en version `*`...
 wildcards = "deny"
+# ...mais exempte les crates internes du workspace (path-deps sans version :
+# `domain`, `infra`), sinon elles sont comptées comme wildcards à tort.
+allow-wildcard-paths = true
 
 [sources]
 unknown-registry = "deny"
