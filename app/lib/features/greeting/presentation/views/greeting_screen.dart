@@ -33,35 +33,42 @@ class _GreetingScreenState extends ConsumerState<GreetingScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.greetingTitle)),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _controller,
-              textInputAction: TextInputAction.done,
-              decoration: InputDecoration(
-                labelText: l10n.greetingNameLabel,
-                border: const OutlineInputBorder(),
-              ),
-              onSubmitted: (_) => _submit(),
-            ),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: state is GreetingLoading ? null : _submit,
-              child: Text(l10n.greetingSubmitButton),
-            ),
-            const SizedBox(height: 32),
-            Expanded(
-              child: Center(
-                child: _GreetingResult(
-                  state: state,
-                  idleHint: l10n.greetingIdleHint,
+      // Mobile-first : sur web/desktop large, on borne la largeur de contenu
+      // pour la lisibilité ; sur mobile, le contenu occupe toute la largeur.
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextField(
+                  controller: _controller,
+                  textInputAction: TextInputAction.done,
+                  decoration: InputDecoration(
+                    labelText: l10n.greetingNameLabel,
+                    border: const OutlineInputBorder(),
+                  ),
+                  onSubmitted: (_) => _submit(),
                 ),
-              ),
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed: state is GreetingLoading ? null : _submit,
+                  child: Text(l10n.greetingSubmitButton),
+                ),
+                const SizedBox(height: 32),
+                Expanded(
+                  child: Center(
+                    child: _GreetingResult(
+                      state: state,
+                      idleHint: l10n.greetingIdleHint,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
