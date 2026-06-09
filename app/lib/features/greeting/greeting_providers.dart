@@ -24,7 +24,10 @@ final greetingRemoteDataSourceProvider = Provider<GreetingRemoteDataSource>(
 
 /// Implémentation concrète du repository (couche data).
 final greetingRepositoryProvider = Provider<GreetingRepository>(
-  (ref) => GreetingRepositoryImpl(ref.watch(greetingRemoteDataSourceProvider)),
+  (ref) => GreetingRepositoryImpl(
+    ref.watch(greetingRemoteDataSourceProvider),
+    ref.watch(loggerProvider),
+  ),
 );
 
 /// Cas d'usage exposé à la couche présentation.

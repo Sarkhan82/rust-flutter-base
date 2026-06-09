@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import 'package:rust_flutter_base/core/error/failure.dart';
 import 'package:rust_flutter_base/core/error/result.dart';
+import 'package:rust_flutter_base/core/observability/logger.dart';
 import 'package:rust_flutter_base/features/greeting/data/datasources/greeting_remote_data_source.dart';
 import 'package:rust_flutter_base/features/greeting/domain/entities/greeting.dart';
 import 'package:rust_flutter_base/features/greeting/domain/repositories/greeting_repository.dart';
@@ -12,9 +13,10 @@ import 'package:rust_flutter_base/features/greeting/domain/repositories/greeting
 /// exception technique (réseau, HTTP, parsing) en [Failure] typé. Aucune
 /// exception ne remonte au-delà de cette couche.
 class GreetingRepositoryImpl implements GreetingRepository {
-  const GreetingRepositoryImpl(this._dataSource);
+  const GreetingRepositoryImpl(this._dataSource, this._logger);
 
   final GreetingRemoteDataSource _dataSource;
+  final AppLogger _logger;
 
   @override
   Future<Result<Greeting>> fetchGreeting(String name) async {
@@ -23,9 +25,13 @@ class GreetingRepositoryImpl implements GreetingRepository {
       return Ok(Greeting(message: message));
     } on DioException catch (e) {
       return Err(NetworkFailure(_describeDioError(e)));
-    } on Exception catch (e) {
-      // FormatException (réponse malformée) et filet de sécurité.
-      return Err(NetworkFailure('Réponse inattendue du serveur : $e'));
+    } on Exception catch (e, stack) {
+      // Réponse malformée (FormatException) + filet de sécurité. Le détail
+      // technique est LOGGÉ (debuggable), jamais exposé à l'UI (cf. §2/§10).
+      _logger.error('Réponse backend inattendue (greeting)', e, stack);
+      return const Err(
+        NetworkFailure('Réponse inattendue du serveur. Réessaie plus tard.'),
+      );
     }
   }
 

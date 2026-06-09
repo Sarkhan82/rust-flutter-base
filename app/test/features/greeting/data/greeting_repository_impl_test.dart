@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:rust_flutter_base/core/error/failure.dart';
 import 'package:rust_flutter_base/core/error/result.dart';
+import 'package:rust_flutter_base/core/observability/logger.dart';
 import 'package:rust_flutter_base/features/greeting/data/datasources/greeting_remote_data_source.dart';
 import 'package:rust_flutter_base/features/greeting/data/repositories/greeting_repository_impl.dart';
 import 'package:rust_flutter_base/features/greeting/domain/entities/greeting.dart';
@@ -15,7 +16,7 @@ void main() {
 
   setUp(() {
     dataSource = _MockDataSource();
-    repo = GreetingRepositoryImpl(dataSource);
+    repo = GreetingRepositoryImpl(dataSource, const AppLogger());
   });
 
   test('mappe la réponse de la datasource en Ok<Greeting>', () async {

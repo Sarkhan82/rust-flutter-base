@@ -8,10 +8,9 @@ analyzer:
     # Annotations freezed/riverpod_generator si vous activez le codegen plus tard
     invalid_annotation_target: ignore
   exclude:
-    - "**/*.g.dart"
-    - "**/*.freezed.dart"
-    - "lib/l10n/generated/**"
-    - "lib/core/rust/generated/**"   # bindings FFI générés (flutter_rust_bridge)
+    - "**/*.g.dart"             # codegen futur (json_serializable, riverpod_gen)
+    - "**/*.freezed.dart"       # codegen futur (freezed)
+    - "lib/l10n/generated/**"   # AppLocalizations générés par gen-l10n
 
 linter:
   rules:
