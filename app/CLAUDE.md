@@ -2,7 +2,7 @@
 
 Règles d'architecture et conventions de la partie Flutter du monorepo
 `rust-flutter-base`. Le **pourquoi** détaillé et les sections numérotées
-(`§N`) citées dans le code sont dans `docs/FLUTTER_ARCHITECTURE.md`.
+(`§N`) citées dans le code sont dans `../docs/FLUTTER_ARCHITECTURE.md`.
 **Ces règles priment** (elles sont la version courte, opérationnelle).
 
 ## Architecture
