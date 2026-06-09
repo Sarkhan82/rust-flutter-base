@@ -1,0 +1,48 @@
+[workspace]
+resolver = "3"
+members = ["crates/domain", "crates/infra", "crates/app"]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/Sarkhan82/rust-flutter-base"
+
+[workspace.dependencies]
+# crates internes
+domain = { path = "crates/domain" }
+infra = { path = "crates/infra" }
+
+# externes
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"] }
+axum = "0.8"
+tower = "0.5"
+tower-http = { version = "0.6", features = ["trace"] }
+thiserror = "2"
+anyhow = "1"
+async-trait = "0.1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json", "fmt"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+uuid = { version = "1", features = ["v4", "serde"] }
+figment = { version = "0.10", features = ["env"] }
+
+[workspace.lints.rust]
+# 'forbid' = interdit ET non-overridable (un #[allow] local ne compile pas).
+# Passe à 'deny' si un crate doit pouvoir lever unsafe (FFI, perf).
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
+unwrap_used = "deny"
+expect_used = "deny"
+mod_module_files = "deny"
+# 'pedantic' n'est PAS activé ici pour garder le template vert out-of-the-box.
+# Voir docs/RUST_ARCHITECTURE.md §8.2 pour l'activer (warn + allow ciblés).
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true
+# panic = "abort" : décision à prendre selon ton modèle de dispo, cf. §9.2.

@@ -1,22 +1,50 @@
-# rust/ — cœur Rust (owner : rust-architect)
+# rust/ — backend API Rust
 
-Ce dossier accueille le ou les crate(s) Rust du monorepo. Il est géré par
-**rust-architect**.
+Service HTTP (axum) en **architecture hexagonale**. C'est la source de vérité du
+contrat d'API consommé par l'app Flutter (`../app/`).
 
-La partie Flutter (`../app`) ne dépend **pas** directement de l'organisation
-interne de ce dossier : elle consomme Rust via le contrat
-`app/lib/core/rust/rust_bridge.dart` (interface `RustBridge`).
+## Layout (workspace cargo)
 
-## À réconcilier entre les deux côtés
+```
+rust/
+├── crates/
+│   ├── domain/   # logique PURE : model (newtypes), ports (traits), service (use cases)
+│   ├── infra/    # adapters concrets des ports + config (figment)
+│   └── app/      # transport HTTP (axum), wiring, télémétrie — le binaire
+├── Cargo.toml    # workspace + lints centralisés
+├── clippy.toml · rustfmt.toml · deny.toml · rust-toolchain.toml
+└── CLAUDE.md     # règles de contribution (condensé de ../docs/RUST_ARCHITECTURE.md)
+```
 
-- **Mécanisme FFI** : `flutter_rust_bridge` (recommandé), `flutter_rust_bridge`
-  v2 codegen, UniFFI, ou FFI brut `dart:ffi` ?
-- **Cible de build** : `cdylib`/`staticlib` linkée dans l'app, ou serveur local ?
-- **Signatures exposées** : la première (`greet(name) -> String`) est un
-  placeholder côté Flutter pour démontrer le câblage. À remplacer par l'API
-  réelle.
-- **Emplacement des bindings Dart générés** : convention proposée
-  `app/lib/core/rust/generated/` (à confirmer).
+Sens des dépendances : **toujours vers `domain`**. `domain` ne dépend d'aucune infra.
 
-> Ce fichier est un placeholder posé par flutter-architect pour matérialiser le
-> dossier. rust-architect le remplace par le vrai contenu du crate.
+## Démarrer
+
+```bash
+cd rust
+cargo run -p app        # serveur sur http://127.0.0.1:8080 (adapter in-memory, zéro infra requise)
+```
+
+## Contrat d'API (v1)
+
+| Méthode & route | Réponse |
+|---|---|
+| `GET /health` | `200` `{"status":"ok"}` |
+| `GET /api/v1/greeting?name=Alice` | `200` `{"message":"Bonjour, Alice ! 👋"}` (name absent/vide → `monde`) |
+| `GET /api/v1/users` | `200` `[{"id":uuid,"email":...}]` |
+| `POST /api/v1/users` `{"email":"a@b.com"}` | `201` `{"id":uuid,"email":...}` · email invalide → `422` |
+| `GET /api/v1/users/{id}` | `200` `{...}` · inconnu → `404` |
+
+`greeting` est la **feature témoin** branchée de bout en bout avec l'app Flutter.
+`users` montre le pattern complet (port + adapter + use cases).
+
+## Qualité
+
+```bash
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
+```
+
+Détails d'architecture et trade-offs : [`../docs/RUST_ARCHITECTURE.md`](../docs/RUST_ARCHITECTURE.md).
+Postgres et autres extensions : voir `CLAUDE.md`.

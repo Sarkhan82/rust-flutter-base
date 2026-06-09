@@ -1,0 +1,7 @@
+# Toolchain de DÉVELOPPEMENT : on suit `stable` pour que `git clone` →
+# `cargo build` soit toujours installable et aligné avec la CI (@stable).
+# Le PLANCHER de compatibilité (MSRV) est déclaré séparément via
+# `rust-version` dans Cargo.toml ; un job CI dédié peut le vérifier.
+[toolchain]
+channel = "stable"
+components = ["rustfmt", "clippy"]

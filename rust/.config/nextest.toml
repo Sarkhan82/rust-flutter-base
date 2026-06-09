@@ -1,0 +1,9 @@
+[profile.default]
+# Affiche la sortie des tests qui échouent immédiatement.
+failure-output = "immediate-final"
+fail-fast = false
+
+[profile.ci]
+# Profil CI : retries pour absorber un éventuel flake, sortie JUnit possible.
+retries = 1
+failure-output = "immediate-final"

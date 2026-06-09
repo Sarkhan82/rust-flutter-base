@@ -1,0 +1,4 @@
+edition = "2024"
+# Options stables uniquement (pas besoin de nightly pour fmt).
+max_width = 100
+newline_style = "Unix"

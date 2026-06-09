@@ -1,0 +1,4 @@
+# Autorise unwrap/expect dans le code de test (pas en code de production).
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+avoid-breaking-exported-api = false

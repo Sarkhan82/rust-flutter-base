@@ -2,47 +2,52 @@
 
 Starter **monorepo Flutter + Rust** — clean architecture, prêt à cloner-démarrer.
 
-Objectif : une base réutilisable pour démarrer une app Flutter dont la logique
-lourde (calcul, crypto, parsing, moteur métier) vit dans un cœur **Rust**
-partagé, consommé via FFI.
+Objectif : une base réutilisable pour démarrer une app **Flutter mobile-first**
+qui parle à un **backend Rust** via **HTTP/REST** (GraphQL-ready). Deux moitiés
+découplées, chacune avec sa propre architecture propre et sa CI.
 
 ## Layout
 
 ```
 rust-flutter-base/
-├── app/      # Application Flutter (clean architecture)  — voir app/README.md
-├── rust/     # Cœur Rust (crate(s) FFI)                  — voir rust/README.md
-└── .github/  # CI
+├── app/      # Application Flutter (clean architecture, mobile-first) — voir app/README.md
+├── rust/     # Backend API Rust (axum, hexagonal)                     — voir rust/README.md
+├── docs/     # RUST_ARCHITECTURE.md — le guide d'archi de référence
+└── .github/  # CI séparée par moitié (Flutter / Rust)
 ```
 
 | Partie | Owner | État |
 |--------|-------|------|
-| `app/` (Flutter) | flutter-architect | Scaffold initial : feature témoin `greeting` de bout en bout, Rust isolé derrière une interface (`RustBridge`). |
-| `rust/` (Rust)   | rust-architect   | À intégrer. L'app fonctionne et se teste avec une impl factice en attendant. |
+| `app/` (Flutter) | flutter-architect | Feature témoin `greeting` de bout en bout ; accès au backend isolé derrière une interface. |
+| `rust/` (Rust)   | rust-architect   | Service axum hexagonal. Feature `greeting` + ressource `users` complète. CI verte. |
 
-## Intégration Rust ↔ Flutter
+## Intégration Flutter ↔ Rust — **HTTP/REST**
 
-Le contrat est isolé dans `app/lib/core/rust/rust_bridge.dart` (interface
-`RustBridge`). Aujourd'hui une implémentation **factice** (`FakeRustBridge`) est
-injectée → l'app compile et passe ses tests **sans** la partie Rust.
+Le frontend Flutter consomme le backend Rust **uniquement via HTTP**. Pas de FFI :
+deux process, deux déploiements, contrat = l'API REST versionnée (`/api/v1/...`).
 
-Quand le cœur Rust est prêt, on branche la vraie implémentation (probablement
-via [`flutter_rust_bridge`](https://pub.dev/packages/flutter_rust_bridge)) en
-overridant un seul provider — **aucune autre couche ne change**. Voir
-`app/lib/core/rust/README` (commentaires en tête de `rust_bridge.dart`).
-
-> ⚠️ Le contrat exact (signatures Rust exposées, FRB vs UniFFI vs FFI brut) est
-> à réconcilier avec rust-architect. L'interface actuelle (`greet(name)`) est un
-> placeholder qui démontre le câblage end-to-end.
+- **Source de vérité du contrat = le backend** (`rust/`). Voir le tableau des
+  routes dans [`rust/README.md`](rust/README.md).
+- Côté Flutter, l'accès réseau est isolé derrière une interface de data source ;
+  la base URL est **configurable par flavor** (dev/staging/prod), jamais en dur.
+- Feature témoin de bout en bout : `GET /api/v1/greeting?name=...` →
+  `{"message":"Bonjour, ... ! 👋"}`, affichée par l'écran `greeting` de l'app.
 
 ## Démarrage
 
+**Backend :**
 ```bash
-cd app
-flutter create .           # (re)génère les dossiers natifs android/ ios/ … (non versionnés)
-flutter pub get
-flutter run --flavor development -t lib/main_development.dart   # ou: flutter run -t lib/main_development.dart
+cd rust
+cargo run -p app     # http://127.0.0.1:8080 — adapter in-memory, aucune infra requise
 ```
 
-Voir [`app/README.md`](app/README.md) et [`app/CLAUDE.md`](app/CLAUDE.md) pour
-les conventions d'architecture.
+**App Flutter :**
+```bash
+cd app
+flutter create .     # (re)génère les dossiers natifs android/ ios/ … (non versionnés)
+flutter pub get
+flutter run -t lib/main_development.dart   # pointe la base URL sur le backend local
+```
+
+Conventions : [`rust/CLAUDE.md`](rust/CLAUDE.md), [`app/CLAUDE.md`](app/CLAUDE.md),
+et le guide [`docs/RUST_ARCHITECTURE.md`](docs/RUST_ARCHITECTURE.md).
