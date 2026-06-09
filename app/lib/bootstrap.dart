@@ -15,17 +15,21 @@ import 'package:rust_flutter_base/core/observability/logger.dart';
 /// montage du [ProviderScope]. Le client HTTP (`dioProvider`) est paresseux :
 /// il se construit à la première requête, pas besoin d'init au boot.
 Future<void> bootstrap(AppConfig config) async {
-  WidgetsFlutterBinding.ensureInitialized();
-
   const logger = AppLogger();
-
-  // Capture des erreurs framework + zone (brancher Sentry/Crashlytics ici).
-  FlutterError.onError = (details) {
-    logger.error('FlutterError', details.exception, details.stack);
-  };
 
   await runZonedGuarded(
     () async {
+      // `ensureInitialized()` DOIT tourner dans la même zone que `runApp` :
+      // les bindings mémorisent leur zone de création, et un appel hors zone
+      // déclenche l'assertion « Zone mismatch » de Flutter. On l'appelle donc
+      // ici, à l'intérieur du runZonedGuarded, pas dans la zone racine.
+      WidgetsFlutterBinding.ensureInitialized();
+
+      // Capture des erreurs framework + zone (brancher Sentry/Crashlytics ici).
+      FlutterError.onError = (details) {
+        logger.error('FlutterError', details.exception, details.stack);
+      };
+
       final container = ProviderContainer(
         overrides: [
           appConfigProvider.overrideWithValue(config),
