@@ -14,10 +14,10 @@ domain = { path = "crates/domain" }
 infra = { path = "crates/infra" }
 
 # externes
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "signal"] }
 axum = "0.8"
 tower = "0.5"
-tower-http = { version = "0.6", features = ["trace"] }
+tower-http = { version = "0.6", features = ["trace", "cors", "timeout", "limit", "request-id", "util"] }
 thiserror = "2"
 anyhow = "1"
 async-trait = "0.1"

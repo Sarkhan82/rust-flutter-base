@@ -36,8 +36,45 @@ jobs:
       - name: Clippy (deny warnings)
         run: cargo clippy --workspace --all-targets --all-features -- -D warnings
 
-      - name: Tests
-        run: cargo test --workspace --all-features
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+
+      - name: Tests (nextest)
+        run: cargo nextest run --workspace --all-features
+
+      - name: Doctests
+        # nextest ne lance pas les doctests : on les couvre séparément.
+        run: cargo test --workspace --all-features --doc
+
+  msrv:
+    name: msrv (rust-version plancher)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rust
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read MSRV from Cargo.toml
+        id: msrv
+        run: |
+          v=$(grep -m1 '^rust-version' Cargo.toml | sed -E 's/.*"([0-9.]+)".*/\1/')
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "MSRV déclaré : $v"
+
+      - name: Install MSRV toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ steps.msrv.outputs.version }}
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+          key: msrv
+
+      - name: Check (prouve le plancher de compatibilité)
+        run: cargo check --workspace --all-features --all-targets
 
   deny:
     name: supply-chain (cargo-deny)

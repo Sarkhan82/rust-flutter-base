@@ -21,6 +21,17 @@ pub struct Config {
 pub struct HttpConfig {
     pub host: String,
     pub port: u16,
+    /// Origines autorisées par CORS (ex : `https://app.exemple.com`).
+    /// **Vide ⇒ mode permissif** (toute origine) : pratique en dev, à
+    /// restreindre en prod. Surcharge via env (syntaxe liste figment) :
+    /// `APP_HTTP__ALLOWED_ORIGINS=["https://app.exemple.com"]`.
+    #[serde(default)]
+    pub allowed_origins: Vec<String>,
+    /// Délai max d'une requête avant `408 Request Timeout`. Borne les handlers
+    /// lents/bloqués pour ne pas épuiser le pool de connexions.
+    pub request_timeout_secs: u64,
+    /// Taille max du corps de requête acceptée, en octets (anti-DoS).
+    pub max_body_bytes: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -35,6 +46,9 @@ impl Default for Config {
             http: HttpConfig {
                 host: "0.0.0.0".to_owned(),
                 port: 8080,
+                allowed_origins: Vec::new(),
+                request_timeout_secs: 30,
+                max_body_bytes: 2 * 1024 * 1024, // 2 Mio
             },
             log: LogConfig {
                 level: "info".to_owned(),

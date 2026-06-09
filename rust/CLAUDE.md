@@ -37,14 +37,46 @@ crates/
 6. `tracing` pour les logs ; **jamais de PII en clair** (email, token…) dans les spans/logs.
 7. Tout nouveau use case = test unitaire ; toute route = test d'intégration dans `app/tests/`.
 
+## Durcissement production (couche HTTP)
+
+Le routeur (`app/src/lib.rs`) monte une stack de middlewares **non négociable** en
+prod, construite depuis la config (`RouterConfig`). Ordre = request-id (externe)
+→ trace → CORS → timeout → body-limit (interne) :
+
+| Couche | Rôle | Réglage |
+|---|---|---|
+| `SetRequestId` + `PropagateRequestId` | corrélation des traces (`x-request-id`) | auto (UUID) |
+| `TraceLayer` | logs structurés par requête | `RUST_LOG` / config |
+| `CorsLayer` | autorise le front web cross-origin | `APP_HTTP__ALLOWED_ORIGINS` — **vide ⇒ permissif (dev only)**, à restreindre en prod |
+| `TimeoutLayer` | borne un handler lent → `408` | `APP_HTTP__REQUEST_TIMEOUT_SECS` (déf. 30) |
+| `RequestBodyLimitLayer` | anti-DoS sur le corps → `413` | `APP_HTTP__MAX_BODY_BYTES` (déf. 2 Mio) |
+
+Plus : **graceful shutdown** (`main.rs` écoute `SIGTERM`/Ctrl-C et draine les
+requêtes en vol — requis en conteneur/k8s).
+
+Règles : toute nouvelle couche transverse se monte ici, pas dans un handler.
+**CORS permissif interdit en prod** : renseigner les origines explicites.
+
+## Authentification (point d'extension)
+
+Le template n'embarque **aucune** authn/authz (volontaire). Pour l'ajouter :
+middleware axum (`from_fn`/extractor) monté sur le sous-routeur `/api/v1`, qui
+valide le token et injecte l'identité dans les extensions de requête. La logique
+d'autorisation métier reste un use case du `domain` ; le transport ne fait que
+porter le jeton. Ne jamais logguer le jeton (cf. règle PII).
+
 ## Avant de pousser
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy --workspace --all-targets -- -D warnings
-cargo test --workspace
-cargo deny check          # si cargo-deny installé
+cargo clippy --workspace --all-targets --all-features -- -D warnings
+cargo test --workspace --all-features          # ou : cargo nextest run --workspace --all-features
+cargo deny check                               # si cargo-deny installé
 ```
+
+> La CI vérifie en plus le **MSRV** (`rust-version` dans `Cargo.toml`) via un job
+> `cargo check` sur la version plancher. Si tu utilises une API plus récente,
+> bumpe `rust-version` — sinon la CI casse.
 
 La CI (`.github/workflows/rust-ci.yml`) rejoue tout ça. Un PR qui ne passe pas est bloqué.
 
