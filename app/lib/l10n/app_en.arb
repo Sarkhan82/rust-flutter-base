@@ -1,0 +1,13 @@
+{
+  "@@locale": "en",
+  "appTitle": "Rust Flutter Base",
+  "@appTitle": { "description": "Application title" },
+  "greetingTitle": "Greeting",
+  "@greetingTitle": { "description": "Title of the greeting screen" },
+  "greetingNameLabel": "Your name",
+  "@greetingNameLabel": { "description": "Label of the name text field" },
+  "greetingSubmitButton": "Greet via Rust",
+  "@greetingSubmitButton": { "description": "Submit button label" },
+  "greetingIdleHint": "Enter a name and tap the button. The greeting is computed by the Rust core.",
+  "@greetingIdleHint": { "description": "Hint shown before any greeting" }
+}

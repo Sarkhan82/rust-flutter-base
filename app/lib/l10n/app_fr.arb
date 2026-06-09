@@ -1,0 +1,8 @@
+{
+  "@@locale": "fr",
+  "appTitle": "Rust Flutter Base",
+  "greetingTitle": "Salutation",
+  "greetingNameLabel": "Votre nom",
+  "greetingSubmitButton": "Saluer via Rust",
+  "greetingIdleHint": "Saisissez un nom et appuyez sur le bouton. La salutation est calculée par le cœur Rust."
+}

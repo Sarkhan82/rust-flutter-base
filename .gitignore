@@ -1,0 +1,35 @@
+# ─── Flutter / Dart ───────────────────────────────────────────
+app/.dart_tool/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/build/
+app/.pub-cache/
+app/.pub/
+# NB: app/pubspec.lock est VOLONTAIREMENT versionné (c'est une application, pas
+# un package) → builds reproductibles. À committer dès le premier `pub get`.
+**/*.g.dart             # généré (build_runner) — décommenter si vous committez le codegen
+**/*.freezed.dart
+**/.idea/
+**/*.iml
+
+# Fichiers générés par flutter create (régénérables) — gardés hors VCS tant
+# qu'ils ne sont pas customisés. Voir app/README.md.
+app/android/
+app/ios/
+app/linux/
+app/macos/
+app/windows/
+app/web/
+app/.metadata
+
+# ─── Rust ─────────────────────────────────────────────────────
+rust/target/
+rust/**/*.rs.bk
+
+# ─── OS / éditeurs ────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
+!.env.example
