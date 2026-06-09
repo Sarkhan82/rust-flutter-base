@@ -16,8 +16,15 @@ Règles d'architecture et conventions de la partie Flutter du monorepo
   `Result<T>` (`core/error/result.dart`). `try/catch` uniquement à la frontière
   I/O (repositories / services). Le `switch` exhaustif sur `Result` est garanti
   par le compilateur.
-- **DI explicite via Riverpod** : rien instancié en dur. Toutes les dépendances
-  passent par des providers (`core/di/providers.dart`).
+- **DI explicite via Riverpod** : rien instancié en dur. Les dépendances
+  transverses passent par `core/di/providers.dart` ; le câblage propre à une
+  feature vit dans `features/<feature>/<feature>_providers.dart`.
+- **Domaine = Dart pur** : les classes de `domain/` (et `data/`) n'importent
+  **pas** Riverpod et ne référencent jamais une couche plus basse. Les providers
+  qui les assemblent sont isolés dans le fichier `<feature>_providers.dart` —
+  seul endroit où le sens `presentation → domain → data` est matérialisé. Une
+  classe domaine qui `import 'flutter_riverpod'` ou un fichier `data/` est un
+  bug d'architecture.
 
 ## Intégration Rust
 

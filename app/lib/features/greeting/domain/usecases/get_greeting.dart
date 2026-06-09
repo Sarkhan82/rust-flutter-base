@@ -1,8 +1,5 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:rust_flutter_base/core/error/failure.dart';
 import 'package:rust_flutter_base/core/error/result.dart';
-import 'package:rust_flutter_base/features/greeting/data/repositories/greeting_repository_impl.dart';
 import 'package:rust_flutter_base/features/greeting/domain/entities/greeting.dart';
 import 'package:rust_flutter_base/features/greeting/domain/repositories/greeting_repository.dart';
 
@@ -10,6 +7,9 @@ import 'package:rust_flutter_base/features/greeting/domain/repositories/greeting
 ///
 /// Porte une vraie logique métier (validation de l'input) → ce n'est pas un
 /// pass-through (cf. règle anti-over-engineering, FLUTTER_ARCHITECTURE.md §14).
+///
+/// **Dart pur** : aucune dépendance framework (pas de Riverpod). Le provider
+/// qui l'instancie vit dans `features/greeting/greeting_providers.dart`.
 class GetGreeting {
   const GetGreeting(this._repository);
 
@@ -25,7 +25,3 @@ class GetGreeting {
     return _repository.fetchGreeting(trimmed);
   }
 }
-
-final getGreetingProvider = Provider<GetGreeting>(
-  (ref) => GetGreeting(ref.watch(greetingRepositoryProvider)),
-);

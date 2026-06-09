@@ -1,6 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'package:rust_flutter_base/core/di/providers.dart';
 import 'package:rust_flutter_base/core/rust/rust_bridge.dart';
 
 /// Service data : wrappe le [RustBridge] pour le besoin "greeting".
@@ -15,7 +12,3 @@ class RustGreetingService {
 
   Future<String> greet(String name) => _bridge.greet(name);
 }
-
-final rustGreetingServiceProvider = Provider<RustGreetingService>(
-  (ref) => RustGreetingService(ref.watch(rustBridgeProvider)),
-);

@@ -37,8 +37,9 @@ lib/
 │   └── observability/        # logger
 ├── features/
 │   └── greeting/             # feature témoin de bout en bout (appelle Rust)
+│       ├── greeting_providers.dart  # câblage Riverpod (domain/data restent purs)
 │       ├── data/             # service (wrappe RustBridge) + repository impl
-│       ├── domain/           # entity + repository (interface) + usecase
+│       ├── domain/           # entity + repository (interface) + usecase (Dart pur)
 │       └── presentation/     # view_model (+state) + view + widgets
 └── l10n/                     # ARB (en, fr)
 

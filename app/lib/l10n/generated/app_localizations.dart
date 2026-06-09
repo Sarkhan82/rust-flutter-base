@@ -5,8 +5,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
-import 'package:rust_flutter_base/l10n/generated/app_localizations_en.dart';
-import 'package:rust_flutter_base/l10n/generated/app_localizations_fr.dart';
+import 'app_localizations_en.dart';
+import 'app_localizations_fr.dart';
 
 // ignore_for_file: type=lint
 

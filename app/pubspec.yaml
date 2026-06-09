@@ -18,7 +18,9 @@ dependencies:
   flutter_riverpod: ^3.0.0
   # Routing déclaratif
   go_router: ^14.2.0
-  # i18n (dates, nombres, pluriels)
+  # i18n (dates, nombres, pluriels). `any` est volontaire : `flutter_localizations`
+  # épingle déjà une version précise d'intl ; la borner ici provoquerait un
+  # conflit de résolution au prochain bump du SDK Flutter.
   intl: any
 
 dev_dependencies:

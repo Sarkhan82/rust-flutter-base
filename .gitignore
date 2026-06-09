@@ -7,8 +7,12 @@ app/.pub-cache/
 app/.pub/
 # NB: app/pubspec.lock est VOLONTAIREMENT versionné (c'est une application, pas
 # un package) → builds reproductibles. À committer dès le premier `pub get`.
-**/*.g.dart             # généré (build_runner) — décommenter si vous committez le codegen
+# Codegen build_runner : NON versionné (régénéré à chaque build, diffs bruyants).
+**/*.g.dart
 **/*.freezed.dart
+# NB cohérence : le l10n généré (app/lib/l10n/generated/) est, lui, VOLONTAIREMENT
+# versionné — petit, stable, et rend le repo `analyze`/`test`-ready juste après
+# `pub get`, sans étape `gen-l10n` préalable. Choix assumé, pas un oubli.
 **/.idea/
 **/*.iml
 

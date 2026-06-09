@@ -1,5 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:rust_flutter_base/core/error/failure.dart';
 import 'package:rust_flutter_base/core/error/result.dart';
 import 'package:rust_flutter_base/features/greeting/data/services/rust_greeting_service.dart';
@@ -25,7 +23,3 @@ class GreetingRepositoryImpl implements GreetingRepository {
     }
   }
 }
-
-final greetingRepositoryProvider = Provider<GreetingRepository>(
-  (ref) => GreetingRepositoryImpl(ref.watch(rustGreetingServiceProvider)),
-);

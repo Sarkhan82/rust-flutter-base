@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:rust_flutter_base/core/error/result.dart';
 import 'package:rust_flutter_base/features/greeting/domain/entities/greeting.dart';
-import 'package:rust_flutter_base/features/greeting/domain/usecases/get_greeting.dart';
+import 'package:rust_flutter_base/features/greeting/greeting_providers.dart';
 
 /// État immuable de l'écran greeting. `sealed` → `switch` exhaustif dans l'UI.
 sealed class GreetingState extends Equatable {

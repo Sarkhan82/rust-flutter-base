@@ -1,7 +1,11 @@
 import 'package:equatable/equatable.dart';
 
 /// Environnements de build (flavors).
-enum Flavor { development, staging, production }
+///
+/// On ne déclare que les flavors réellement câblés (entrypoint + factory).
+/// Ajouter `staging` ici **et** une factory `AppConfig.staging()` +
+/// `lib/main_staging.dart` le jour où l'environnement existe (YAGNI).
+enum Flavor { development, production }
 
 /// Configuration immuable injectée au démarrage (un par flavor).
 ///
