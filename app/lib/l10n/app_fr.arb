@@ -4,5 +4,13 @@
   "greetingTitle": "Salutation",
   "greetingNameLabel": "Votre nom",
   "greetingSubmitButton": "Saluer via Rust",
-  "greetingIdleHint": "Saisissez un nom et appuyez sur le bouton. La salutation est calculée par le cœur Rust."
+  "greetingIdleHint": "Saisissez un nom et appuyez sur le bouton. La salutation est calculée par le cœur Rust.",
+  "errorNetworkTimeout": "Le serveur met trop de temps à répondre.",
+  "errorNetworkConnection": "Impossible de joindre le serveur. Vérifiez votre connexion.",
+  "errorNetworkBadResponse": "Le serveur a renvoyé une erreur ({statusCode}).",
+  "errorNetworkMalformedResponse": "Réponse inattendue du serveur. Réessayez plus tard.",
+  "errorNetworkUnexpected": "Erreur réseau inattendue.",
+  "errorValidationEmptyInput": "Ce champ ne peut pas être vide.",
+  "errorUnexpected": "Une erreur est survenue. Réessayez plus tard.",
+  "@@x-note": "Les clés error* traduisent les Failure typés — voir core/l10n/failure_l10n.dart"
 }

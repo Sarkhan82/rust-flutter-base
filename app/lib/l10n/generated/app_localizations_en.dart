@@ -23,4 +23,29 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get greetingIdleHint =>
       'Enter a name and tap the button. The greeting is computed by the Rust core.';
+
+  @override
+  String get errorNetworkTimeout => 'The server is taking too long to respond.';
+
+  @override
+  String get errorNetworkConnection =>
+      'Unable to reach the server. Check your connection.';
+
+  @override
+  String errorNetworkBadResponse(int statusCode) {
+    return 'The server returned an error ($statusCode).';
+  }
+
+  @override
+  String get errorNetworkMalformedResponse =>
+      'Unexpected response from the server. Try again later.';
+
+  @override
+  String get errorNetworkUnexpected => 'Unexpected network error.';
+
+  @override
+  String get errorValidationEmptyInput => 'This field cannot be empty.';
+
+  @override
+  String get errorUnexpected => 'Something went wrong. Try again later.';
 }

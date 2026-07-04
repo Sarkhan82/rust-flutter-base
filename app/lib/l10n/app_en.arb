@@ -9,5 +9,22 @@
   "greetingSubmitButton": "Greet via Rust",
   "@greetingSubmitButton": { "description": "Submit button label" },
   "greetingIdleHint": "Enter a name and tap the button. The greeting is computed by the Rust core.",
-  "@greetingIdleHint": { "description": "Hint shown before any greeting" }
+  "@greetingIdleHint": { "description": "Hint shown before any greeting" },
+  "errorNetworkTimeout": "The server is taking too long to respond.",
+  "@errorNetworkTimeout": { "description": "Network error: request timed out" },
+  "errorNetworkConnection": "Unable to reach the server. Check your connection.",
+  "@errorNetworkConnection": { "description": "Network error: server unreachable" },
+  "errorNetworkBadResponse": "The server returned an error ({statusCode}).",
+  "@errorNetworkBadResponse": {
+    "description": "Network error: HTTP error status from the server",
+    "placeholders": { "statusCode": { "type": "int" } }
+  },
+  "errorNetworkMalformedResponse": "Unexpected response from the server. Try again later.",
+  "@errorNetworkMalformedResponse": { "description": "Network error: response does not match the API contract" },
+  "errorNetworkUnexpected": "Unexpected network error.",
+  "@errorNetworkUnexpected": { "description": "Network error: uncategorized" },
+  "errorValidationEmptyInput": "This field cannot be empty.",
+  "@errorValidationEmptyInput": { "description": "Validation error: required input is empty" },
+  "errorUnexpected": "Something went wrong. Try again later.",
+  "@errorUnexpected": { "description": "Fallback error message" }
 }

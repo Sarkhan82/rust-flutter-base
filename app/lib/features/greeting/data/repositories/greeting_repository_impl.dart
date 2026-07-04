@@ -24,30 +24,34 @@ class GreetingRepositoryImpl implements GreetingRepository {
       final message = await _dataSource.fetchGreeting(name);
       return Ok(Greeting(message: message));
     } on DioException catch (e) {
-      return Err(NetworkFailure(_describeDioError(e)));
+      return Err(_mapDioError(e));
+    } on FormatException catch (e, stack) {
+      // Réponse qui ne respecte pas le contrat d'API. Le détail technique est
+      // LOGGÉ (debuggable), jamais transporté dans le Failure (cf. §2/§10).
+      _logger.error('Réponse backend malformée (greeting)', e, stack);
+      return const Err(NetworkFailure(NetworkFailureKind.malformedResponse));
     } on Exception catch (e, stack) {
-      // Réponse malformée (FormatException) + filet de sécurité. Le détail
-      // technique est LOGGÉ (debuggable), jamais exposé à l'UI (cf. §2/§10).
-      _logger.error('Réponse backend inattendue (greeting)', e, stack);
-      return const Err(
-        NetworkFailure('Réponse inattendue du serveur. Réessaie plus tard.'),
-      );
+      // Filet de sécurité : erreur non anticipée.
+      _logger.error('Erreur inattendue (greeting)', e, stack);
+      return const Err(UnexpectedFailure());
     }
   }
 
-  /// Message présentable selon le type d'échec Dio (sans fuiter de détail
-  /// technique inutile à l'utilisateur).
-  String _describeDioError(DioException e) {
+  /// Catégorise l'échec Dio en cause typée. La traduction en message
+  /// affichable vit en présentation (`FailureL10n`), pas ici.
+  NetworkFailure _mapDioError(DioException e) {
     return switch (e.type) {
       DioExceptionType.connectionTimeout ||
       DioExceptionType.sendTimeout ||
       DioExceptionType.receiveTimeout =>
-        'Le serveur met trop de temps à répondre.',
+        const NetworkFailure(NetworkFailureKind.timeout),
       DioExceptionType.connectionError =>
-        'Impossible de joindre le serveur. Vérifie ta connexion.',
-      DioExceptionType.badResponse =>
-        'Le serveur a renvoyé une erreur (${e.response?.statusCode}).',
-      _ => 'Erreur réseau inattendue.',
+        const NetworkFailure(NetworkFailureKind.connection),
+      DioExceptionType.badResponse => NetworkFailure(
+          NetworkFailureKind.badResponse,
+          statusCode: e.response?.statusCode,
+        ),
+      _ => const NetworkFailure(NetworkFailureKind.unexpected),
     };
   }
 }

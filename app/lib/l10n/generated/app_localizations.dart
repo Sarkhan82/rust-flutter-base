@@ -127,6 +127,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a name and tap the button. The greeting is computed by the Rust core.'**
   String get greetingIdleHint;
+
+  /// Network error: request timed out
+  ///
+  /// In en, this message translates to:
+  /// **'The server is taking too long to respond.'**
+  String get errorNetworkTimeout;
+
+  /// Network error: server unreachable
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to reach the server. Check your connection.'**
+  String get errorNetworkConnection;
+
+  /// Network error: HTTP error status from the server
+  ///
+  /// In en, this message translates to:
+  /// **'The server returned an error ({statusCode}).'**
+  String errorNetworkBadResponse(int statusCode);
+
+  /// Network error: response does not match the API contract
+  ///
+  /// In en, this message translates to:
+  /// **'Unexpected response from the server. Try again later.'**
+  String get errorNetworkMalformedResponse;
+
+  /// Network error: uncategorized
+  ///
+  /// In en, this message translates to:
+  /// **'Unexpected network error.'**
+  String get errorNetworkUnexpected;
+
+  /// Validation error: required input is empty
+  ///
+  /// In en, this message translates to:
+  /// **'This field cannot be empty.'**
+  String get errorValidationEmptyInput;
+
+  /// Fallback error message
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Try again later.'**
+  String get errorUnexpected;
 }
 
 class _AppLocalizationsDelegate

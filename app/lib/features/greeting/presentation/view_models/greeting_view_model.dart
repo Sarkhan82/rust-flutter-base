@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:rust_flutter_base/core/error/failure.dart';
 import 'package:rust_flutter_base/core/error/result.dart';
 import 'package:rust_flutter_base/features/greeting/domain/entities/greeting.dart';
 import 'package:rust_flutter_base/features/greeting/greeting_providers.dart';
@@ -30,11 +31,14 @@ final class GreetingSuccess extends GreetingState {
 }
 
 final class GreetingFailure extends GreetingState {
-  const GreetingFailure(this.message);
-  final String message;
+  const GreetingFailure(this.failure);
+
+  /// Cause typée — la traduction en message se fait dans la View via
+  /// `FailureL10n` (l'état reste indépendant de la locale courante).
+  final Failure failure;
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [failure];
 }
 
 /// ViewModel : transforme l'action utilisateur en états affichables.
@@ -48,7 +52,7 @@ class GreetingViewModel extends Notifier<GreetingState> {
     final result = await ref.read(getGreetingProvider).call(name);
     state = switch (result) {
       Ok(:final value) => GreetingSuccess(value),
-      Err(:final failure) => GreetingFailure(failure.message),
+      Err(:final failure) => GreetingFailure(failure),
     };
   }
 }

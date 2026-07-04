@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:rust_flutter_base/core/l10n/failure_l10n.dart';
 import 'package:rust_flutter_base/features/greeting/presentation/view_models/greeting_view_model.dart';
 import 'package:rust_flutter_base/l10n/generated/app_localizations.dart';
 
@@ -97,8 +98,9 @@ class _GreetingResult extends StatelessWidget {
           textAlign: TextAlign.center,
           style: theme.textTheme.titleMedium,
         ),
-      GreetingFailure(:final message) => Text(
-          message,
+      // Cause typée → message localisé, uniquement ici (couche présentation).
+      GreetingFailure(:final failure) => Text(
+          failure.localizedMessage(AppLocalizations.of(context)),
           textAlign: TextAlign.center,
           style: theme.textTheme.titleMedium
               ?.copyWith(color: theme.colorScheme.error),

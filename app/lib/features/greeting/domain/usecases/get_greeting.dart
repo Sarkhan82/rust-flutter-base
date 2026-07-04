@@ -19,7 +19,7 @@ class GetGreeting {
     final trimmed = name.trim();
     if (trimmed.isEmpty) {
       return Future.value(
-        const Err(ValidationFailure('Le nom ne peut pas être vide.')),
+        const Err(ValidationFailure(ValidationCode.emptyInput)),
       );
     }
     return _repository.fetchGreeting(trimmed);
