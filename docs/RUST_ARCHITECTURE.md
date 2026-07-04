@@ -117,6 +117,7 @@ uuid      = { version = "1", features = ["v4", "serde"] }
 # 'forbid' = INTERDIT et NON-OVERRIDABLE (un #[allow] local échoue à compiler).
 # Si tu prévois de lever unsafe dans un crate (FFI, perf), mets 'deny' à la place.
 unsafe_code = "forbid"
+missing_docs = "deny"          # toute API publique documentée (le POURQUOI)
 missing_debug_implementations = "warn"
 unreachable_pub = "warn"       # détecte le pub qui ne sort jamais du crate
 
@@ -124,9 +125,19 @@ unreachable_pub = "warn"       # détecte le pub qui ne sort jamais du crate
 all      = { level = "deny",  priority = -1 }
 pedantic = { level = "warn",  priority = -1 }   # bruyant : voir §8.2 avant de l'activer partout
 unwrap_used = "deny"
-expect_used = "warn"
+expect_used = "deny"
+panic = "deny"                 # la règle « zéro panic » est ENFORCÉE, pas déclarée
+todo = "deny"
+unimplemented = "deny"
+dbg_macro = "deny"             # debug oublié
+print_stdout = "deny"          # les sorties passent par `tracing`
+print_stderr = "deny"
 mod_module_files = "deny"      # impose foo.rs (interdit mod.rs)
 ```
+
+Le pendant côté `clippy.toml` : `allow-unwrap-in-tests`, `allow-expect-in-tests`,
+`allow-panic-in-tests`, `allow-print-in-tests`, `allow-dbg-in-tests` — les tests
+gardent le droit de panic/print, la prod jamais.
 
 Chaque crate hérite ensuite via `tokio.workspace = true` et `[lints] workspace = true`.
 
@@ -573,7 +584,9 @@ components = ["rustfmt", "clippy"]
 cargo clippy --all-targets --all-features -- -D warnings
 ```
 
-`clippy::all` en **deny** : non négociable. `clippy::pedantic` : **utile mais bruyant** — il flag des choses légitimes (`must_use_candidate`, `module_name_repetitions`…). Recommandation honnête : active-le en **`warn`**, traite ce qui a du sens, et `#[allow(clippy::xxx)]` ciblé (avec commentaire) le reste. Ne le mets pas en `deny` global sauf équipe disciplinée — sinon tu passeras ton temps à le museler. Groupes à privilégier sans réserve : `correctness`, `suspicious`, `perf`.
+`clippy::all` en **deny** : non négociable. `clippy::pedantic` : **utile mais bruyant** — il flag des choses légitimes (`must_use_candidate`, `module_name_repetitions`…). Recommandation honnête : active-le en **`warn`**, traite ce qui a du sens, et le reste en `#[expect(clippy::xxx, reason = "…")]` ciblé — `#[expect]` plutôt
+que `#[allow]` : il **avertit quand il ne sert plus** (lint auto-nettoyant) et la
+`reason` est obligatoire de fait. Ne le mets pas en `deny` global sauf équipe disciplinée — sinon tu passeras ton temps à le museler. Groupes à privilégier sans réserve : `correctness`, `suspicious`, `perf`.
 
 ### 8.3 `Cargo.lock` : commiter ou non *(corrigé — sagesse renversée en 2023)*
 

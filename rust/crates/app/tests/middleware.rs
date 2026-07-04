@@ -16,6 +16,7 @@ fn state() -> AppState {
 #[tokio::test]
 async fn responses_carry_a_request_id() {
     let resp = router(state())
+        .unwrap()
         .oneshot(
             Request::builder()
                 .uri("/health")
@@ -36,6 +37,7 @@ async fn responses_carry_a_request_id() {
 async fn cors_is_permissive_by_default() {
     // Config par défaut (allowed_origins vide) ⇒ CORS permissif.
     let resp = router(state())
+        .unwrap()
         .oneshot(
             Request::builder()
                 .uri("/health")
@@ -64,6 +66,7 @@ async fn body_over_limit_is_rejected() {
     let oversized = "x".repeat(1024);
 
     let resp = router_with(state(), &cfg)
+        .unwrap()
         .oneshot(
             Request::builder()
                 .method("POST")
@@ -80,5 +83,20 @@ async fn body_over_limit_is_rejected() {
         resp.status(),
         StatusCode::PAYLOAD_TOO_LARGE,
         "un corps au-delà de la limite doit être rejeté en 413"
+    );
+}
+
+#[tokio::test]
+async fn invalid_cors_origin_fails_fast() {
+    let cfg = RouterConfig {
+        allowed_origins: vec!["pas une origine\u{7f}".to_owned()],
+        ..RouterConfig::default()
+    };
+
+    let err =
+        router_with(state(), &cfg).expect_err("une origine invalide doit refuser de démarrer");
+    assert!(
+        err.to_string().contains("origine CORS invalide"),
+        "l'erreur doit désigner l'origine fautive : {err}"
     );
 }

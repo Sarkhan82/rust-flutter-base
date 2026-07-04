@@ -45,6 +45,7 @@ impl<T: UserRepository + ?Sized> UserRepository for Arc<T> {
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum RepoError {
+    /// Échec technique de la couche de stockage (connexion, I/O, lock…).
     #[error("erreur de stockage : {0}")]
     Storage(String),
 }

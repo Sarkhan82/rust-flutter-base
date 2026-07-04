@@ -8,5 +8,5 @@
 pub mod config;
 pub mod memory;
 
-pub use config::Config;
+pub use config::{Config, LogConfig, LogFormat};
 pub use memory::InMemoryUserRepository;

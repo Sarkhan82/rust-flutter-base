@@ -11,10 +11,12 @@ use domain::ports::UserRepository;
 /// couche HTTP n'en sache rien.
 #[derive(Clone)]
 pub struct AppState {
+    /// Port de persistance des utilisateurs (adapter choisi dans `main`).
     pub users: Arc<dyn UserRepository>,
 }
 
 impl AppState {
+    /// Construit l'état applicatif avec le repo fourni.
     #[must_use]
     pub fn new(users: Arc<dyn UserRepository>) -> Self {
         Self { users }

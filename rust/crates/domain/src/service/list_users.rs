@@ -9,6 +9,7 @@ pub struct ListUsers<R: UserRepository> {
 }
 
 impl<R: UserRepository> ListUsers<R> {
+    /// Construit le use case avec le repo fourni.
     pub fn new(repo: R) -> Self {
         Self { repo }
     }

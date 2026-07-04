@@ -9,9 +9,13 @@ use http_body_util::BodyExt;
 use infra::InMemoryUserRepository;
 use tower::ServiceExt;
 
+#[expect(
+    clippy::unwrap_used,
+    reason = "helper de test : la config par défaut est infaillible"
+)]
 fn test_app() -> axum::Router {
     let state = AppState::new(Arc::new(InMemoryUserRepository::new()));
-    router(state)
+    router(state).unwrap()
 }
 
 #[tokio::test]

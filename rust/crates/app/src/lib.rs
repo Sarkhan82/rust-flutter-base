@@ -42,10 +42,28 @@ impl Default for RouterConfig {
     }
 }
 
+/// Erreur de construction du routeur : configuration invalide.
+///
+/// Volontairement **fatale** : une config invalide empêche le démarrage
+/// (fail-fast), plutôt que de dégrader silencieusement la sécurité au runtime.
+#[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
+pub enum RouterError {
+    /// Une origine CORS de la config n'est pas une valeur de header valide.
+    #[error("origine CORS invalide dans la config : {origin:?}")]
+    InvalidCorsOrigin {
+        /// La valeur rejetée, telle que fournie dans la config.
+        origin: String,
+    },
+}
+
 /// Construit le routeur HTTP avec les middlewares de prod par défaut.
 ///
 /// Raccourci de [`router_with`] utilisé par les tests d'intégration.
-pub fn router(state: AppState) -> Router {
+///
+/// # Errors
+/// Voir [`router_with`] — infaillible avec la config par défaut (CORS permissif).
+pub fn router(state: AppState) -> Result<Router, RouterError> {
     router_with(state, &RouterConfig::default())
 }
 
@@ -55,8 +73,13 @@ pub fn router(state: AppState) -> Router {
 /// request-id (outermost) → trace → CORS → timeout → body-limit (innermost).
 /// Ainsi l'id de requête existe pour toute la chaîne, le préflight/CORS est
 /// traité avant de consommer le corps, et le timeout borne tout handler.
-pub fn router_with(state: AppState, cfg: &RouterConfig) -> Router {
-    Router::new()
+///
+/// # Errors
+/// [`RouterError::InvalidCorsOrigin`] si une origine configurée ne parse pas :
+/// on refuse de démarrer plutôt que de servir avec un CORS différent de celui
+/// demandé (fail-fast sur la config).
+pub fn router_with(state: AppState, cfg: &RouterConfig) -> Result<Router, RouterError> {
+    Ok(Router::new()
         .route("/health", get(http::health::health))
         .nest(
             "/api/v1",
@@ -68,37 +91,37 @@ pub fn router_with(state: AppState, cfg: &RouterConfig) -> Router {
             StatusCode::REQUEST_TIMEOUT,
             cfg.request_timeout,
         ))
-        .layer(cors_layer(&cfg.allowed_origins))
+        .layer(cors_layer(&cfg.allowed_origins)?)
         .layer(TraceLayer::new_for_http())
         .layer(PropagateRequestIdLayer::x_request_id())
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
-        .with_state(state)
+        .with_state(state))
 }
 
 /// Construit la couche CORS. Liste vide ⇒ permissif (dev, avec avertissement) ;
 /// sinon restreint aux origines explicitement autorisées.
-fn cors_layer(allowed_origins: &[String]) -> CorsLayer {
+///
+/// Une origine invalide est une **erreur** (pas un skip silencieux) : la config
+/// effective doit toujours être exactement la config demandée.
+fn cors_layer(allowed_origins: &[String]) -> Result<CorsLayer, RouterError> {
     if allowed_origins.is_empty() {
         tracing::warn!(
             "CORS permissif (toute origine) — OK en dev, À RESTREINDRE en prod \
              via APP_HTTP__ALLOWED_ORIGINS"
         );
-        return CorsLayer::permissive();
+        return Ok(CorsLayer::permissive());
     }
 
     let origins: Vec<HeaderValue> = allowed_origins
         .iter()
-        .filter_map(|o| match o.parse::<HeaderValue>() {
-            Ok(v) => Some(v),
-            Err(_) => {
-                tracing::error!(origin = %o, "origine CORS invalide, ignorée");
-                None
-            }
+        .map(|o| {
+            o.parse::<HeaderValue>()
+                .map_err(|_| RouterError::InvalidCorsOrigin { origin: o.clone() })
         })
-        .collect();
+        .collect::<Result<_, _>>()?;
 
-    CorsLayer::new()
+    Ok(CorsLayer::new()
         .allow_origin(AllowOrigin::list(origins))
         .allow_methods(Any)
-        .allow_headers(Any)
+        .allow_headers(Any))
 }

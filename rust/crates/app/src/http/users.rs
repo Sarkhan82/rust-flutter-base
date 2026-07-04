@@ -23,7 +23,9 @@ pub fn routes() -> Router<AppState> {
 /// le DTO découple le contrat d'API du modèle interne).
 #[derive(Debug, Serialize)]
 pub struct UserDto {
+    /// Identifiant de l'utilisateur.
     pub id: Uuid,
+    /// Adresse email (déjà validée côté domaine).
     pub email: String,
 }
 
@@ -36,8 +38,10 @@ impl From<User> for UserDto {
     }
 }
 
+/// Corps de requête de `POST /users`.
 #[derive(Debug, Deserialize)]
 pub struct CreateUserRequest {
+    /// Adresse email à valider puis enregistrer.
     pub email: String,
 }
 

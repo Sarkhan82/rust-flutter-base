@@ -54,8 +54,12 @@ impl Email {
     pub fn parse(raw: impl Into<String>) -> Result<Self, EmailError> {
         let raw = raw.into();
         let valid = raw.len() <= 254
+            && !raw.chars().any(char::is_whitespace)
             && raw.split_once('@').is_some_and(|(local, domain)| {
-                !local.is_empty() && domain.contains('.') && !domain.starts_with('.')
+                !local.is_empty()
+                    && domain.contains('.')
+                    && !domain.starts_with('.')
+                    && !domain.ends_with('.')
             });
         if valid {
             Ok(Self(raw))
@@ -64,6 +68,7 @@ impl Email {
         }
     }
 
+    /// L'adresse sous forme de `&str`.
     #[must_use]
     pub fn as_str(&self) -> &str {
         &self.0
@@ -80,6 +85,7 @@ impl std::fmt::Display for Email {
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[non_exhaustive]
 pub enum EmailError {
+    /// L'entrée n'a pas la forme d'une adresse email valide.
     #[error("adresse email invalide")]
     Invalid,
 }
@@ -87,7 +93,9 @@ pub enum EmailError {
 /// L'agrégat utilisateur.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct User {
+    /// Identifiant unique (newtype sur `Uuid`).
     pub id: UserId,
+    /// Adresse email validée (type-preuve).
     pub email: Email,
 }
 
@@ -108,6 +116,16 @@ mod tests {
     #[test]
     fn parse_rejects_domain_without_dot() {
         assert_eq!(Email::parse("a@localhost"), Err(EmailError::Invalid));
+    }
+
+    #[test]
+    fn parse_rejects_whitespace() {
+        assert_eq!(Email::parse("a b@example.com"), Err(EmailError::Invalid));
+    }
+
+    #[test]
+    fn parse_rejects_domain_with_trailing_dot() {
+        assert_eq!(Email::parse("a@example.com."), Err(EmailError::Invalid));
     }
 
     #[test]

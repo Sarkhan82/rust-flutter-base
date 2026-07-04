@@ -16,6 +16,7 @@ pub struct InMemoryUserRepository {
 }
 
 impl InMemoryUserRepository {
+    /// Crée un dépôt vide.
     #[must_use]
     pub fn new() -> Self {
         Self::default()

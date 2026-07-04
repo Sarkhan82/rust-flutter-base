@@ -1,4 +1,8 @@
-# Autorise unwrap/expect dans le code de test (pas en code de production).
+# Autorise unwrap/expect/panic/print/dbg dans le code de TEST uniquement
+# (jamais en code de production — lints `deny` dans Cargo.toml).
 allow-unwrap-in-tests = true
 allow-expect-in-tests = true
+allow-panic-in-tests = true
+allow-print-in-tests = true
+allow-dbg-in-tests = true
 avoid-breaking-exported-api = false

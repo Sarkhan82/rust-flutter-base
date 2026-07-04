@@ -12,7 +12,7 @@ use infra::{Config, InMemoryUserRepository};
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let cfg = Config::load().context("chargement de la configuration")?;
-    app::telemetry::init(&cfg.log.level);
+    app::telemetry::init(&cfg.log);
 
     // Choix de l'adapter ici. Pour passer à Postgres : remplace cette ligne par
     // un `PgUserRepository` (cf. docs/RUST_ARCHITECTURE.md §2.4).
@@ -30,14 +30,14 @@ async fn main() -> anyhow::Result<()> {
         .await
         .with_context(|| format!("écoute sur {addr}"))?;
 
+    let router = app::router_with(state, &router_cfg)
+        .context("construction du routeur (config HTTP invalide)")?;
+
     tracing::info!(%addr, "serveur démarré");
-    axum::serve(
-        listener,
-        app::router_with(state, &router_cfg).into_make_service(),
-    )
-    .with_graceful_shutdown(shutdown_signal())
-    .await
-    .context("erreur du serveur HTTP")?;
+    axum::serve(listener, router.into_make_service())
+        .with_graceful_shutdown(shutdown_signal())
+        .await
+        .context("erreur du serveur HTTP")?;
 
     Ok(())
 }

@@ -10,6 +10,7 @@ pub struct RegisterUser<R: UserRepository> {
 }
 
 impl<R: UserRepository> RegisterUser<R> {
+    /// Construit le use case avec le repo fourni.
     pub fn new(repo: R) -> Self {
         Self { repo }
     }
@@ -32,6 +33,7 @@ impl<R: UserRepository> RegisterUser<R> {
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum RegisterError {
+    /// Échec de la persistance de l'utilisateur.
     #[error(transparent)]
     Repo(#[from] RepoError),
 }

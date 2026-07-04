@@ -3,8 +3,10 @@
 use axum::Json;
 use serde::Serialize;
 
+/// Corps de réponse de `GET /health`.
 #[derive(Debug, Serialize)]
 pub struct HealthResponse {
+    /// Toujours `"ok"` tant que le process répond.
     pub status: &'static str,
 }
 

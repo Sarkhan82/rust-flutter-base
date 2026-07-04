@@ -35,11 +35,22 @@ figment = { version = "0.10", features = ["env"] }
 # 'forbid' = interdit ET non-overridable (un #[allow] local ne compile pas).
 # Passe à 'deny' si un crate doit pouvoir lever unsafe (FFI, perf).
 unsafe_code = "forbid"
+# Toute API publique doit être documentée (///). Force les contributions
+# (humaines comme IA) à expliquer le POURQUOI, pas seulement compiler.
+missing_docs = "deny"
 
 [workspace.lints.clippy]
 all = { level = "deny", priority = -1 }
 unwrap_used = "deny"
 expect_used = "deny"
+# La règle « zéro panic en prod » est ENFORCÉE, pas seulement déclarée :
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+# Debug/print oubliés : dbg!() et println!/eprintln! interdits (utiliser `tracing`).
+dbg_macro = "deny"
+print_stdout = "deny"
+print_stderr = "deny"
 mod_module_files = "deny"
 # 'pedantic' n'est PAS activé ici pour garder le template vert out-of-the-box.
 # Voir docs/RUST_ARCHITECTURE.md §8.2 pour l'activer (warn + allow ciblés).

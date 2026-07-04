@@ -11,6 +11,7 @@ pub struct GetUser<R: UserRepository> {
 }
 
 impl<R: UserRepository> GetUser<R> {
+    /// Construit le use case avec le repo fourni.
     pub fn new(repo: R) -> Self {
         Self { repo }
     }

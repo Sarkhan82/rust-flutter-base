@@ -11,15 +11,21 @@ use figment::{
 };
 use serde::{Deserialize, Serialize};
 
+/// Configuration racine de l'application.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
+    /// Réglages du serveur HTTP (adresse, middlewares de prod).
     pub http: HttpConfig,
+    /// Réglages de la télémétrie.
     pub log: LogConfig,
 }
 
+/// Réglages du serveur HTTP et de sa stack de middlewares.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HttpConfig {
+    /// Interface d'écoute (ex : `0.0.0.0`).
     pub host: String,
+    /// Port d'écoute.
     pub port: u16,
     /// Origines autorisées par CORS (ex : `https://app.exemple.com`).
     /// **Vide ⇒ mode permissif** (toute origine) : pratique en dev, à
@@ -34,10 +40,26 @@ pub struct HttpConfig {
     pub max_body_bytes: usize,
 }
 
+/// Réglages de la télémétrie (`tracing`).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LogConfig {
     /// Filtre de log au format `tracing` (ex : "info", "debug,hyper=warn").
     pub level: String,
+    /// Format de sortie : `text` (dev) ou `json` (prod, logs structurés).
+    /// Surcharge : `APP_LOG__FORMAT=json`.
+    #[serde(default)]
+    pub format: LogFormat,
+}
+
+/// Format de sortie des logs.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum LogFormat {
+    /// Lignes lisibles par un humain — défaut, pour le dev.
+    #[default]
+    Text,
+    /// Une ligne JSON par événement — pour la prod (collecteurs de logs).
+    Json,
 }
 
 impl Default for Config {
@@ -52,6 +74,7 @@ impl Default for Config {
             },
             log: LogConfig {
                 level: "info".to_owned(),
+                format: LogFormat::default(),
             },
         }
     }

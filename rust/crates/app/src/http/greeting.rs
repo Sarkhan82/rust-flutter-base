@@ -18,6 +18,7 @@ pub fn routes() -> Router<AppState> {
     Router::new().route("/greeting", get(greeting))
 }
 
+/// Paramètres de requête de `GET /greeting`.
 #[derive(Debug, Deserialize)]
 pub struct GreetingParams {
     /// Nom à saluer. Absent ou vide → salutation générique.
@@ -25,8 +26,10 @@ pub struct GreetingParams {
     pub name: String,
 }
 
+/// Corps de réponse de `GET /greeting`.
 #[derive(Debug, Serialize)]
 pub struct GreetingResponse {
+    /// Message de salutation formé par le domaine.
     pub message: String,
 }
 
