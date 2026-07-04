@@ -29,7 +29,7 @@ void main() {
     expect((result as Ok<Greeting>).value.message, 'Bonjour, Ada ! 👋');
   });
 
-  test('convertit une DioException en Err<NetworkFailure> (pas de fuite)',
+  test('convertit une DioException en NetworkFailure typé (pas de fuite)',
       () async {
     when(() => dataSource.fetchGreeting(any())).thenThrow(
       DioException.connectionError(
@@ -41,16 +41,55 @@ void main() {
     final result = await repo.fetchGreeting('Ada');
 
     expect(result, isA<Err<Greeting>>());
-    expect((result as Err<Greeting>).failure, isA<NetworkFailure>());
+    expect(
+      (result as Err<Greeting>).failure,
+      const NetworkFailure(NetworkFailureKind.connection),
+    );
   });
 
-  test('convertit une réponse malformée en Err<NetworkFailure>', () async {
+  test('porte le status HTTP sur une réponse en erreur (badResponse)',
+      () async {
+    final requestOptions = RequestOptions(path: '/api/v1/greeting');
+    when(() => dataSource.fetchGreeting(any())).thenThrow(
+      DioException.badResponse(
+        statusCode: 503,
+        requestOptions: requestOptions,
+        response: Response<void>(
+          requestOptions: requestOptions,
+          statusCode: 503,
+        ),
+      ),
+    );
+
+    final result = await repo.fetchGreeting('Ada');
+
+    expect(
+      (result as Err<Greeting>).failure,
+      const NetworkFailure(NetworkFailureKind.badResponse, statusCode: 503),
+    );
+  });
+
+  test('convertit une réponse malformée en NetworkFailure(malformedResponse)',
+      () async {
     when(() => dataSource.fetchGreeting(any()))
         .thenThrow(const FormatException('champ message absent'));
 
     final result = await repo.fetchGreeting('Ada');
 
     expect(result, isA<Err<Greeting>>());
-    expect((result as Err<Greeting>).failure, isA<NetworkFailure>());
+    expect(
+      (result as Err<Greeting>).failure,
+      const NetworkFailure(NetworkFailureKind.malformedResponse),
+    );
+  });
+
+  test('filet de sécurité : exception inattendue → UnexpectedFailure',
+      () async {
+    when(() => dataSource.fetchGreeting(any())).thenThrow(Exception('boom'));
+
+    final result = await repo.fetchGreeting('Ada');
+
+    expect(result, isA<Err<Greeting>>());
+    expect((result as Err<Greeting>).failure, const UnexpectedFailure());
   });
 }
