@@ -2,8 +2,19 @@ name: CI
 
 on:
   pull_request:
+    paths:
+      - "app/**"
+      - ".github/workflows/ci.yaml"
   push:
     branches: [main]
+    paths:
+      - "app/**"
+      - ".github/workflows/ci.yaml"
+
+# Annule les runs obsolètes sur une même branche/PR (symétrique de rust-ci).
+concurrency:
+  group: flutter-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   flutter:
