@@ -56,9 +56,16 @@ Toute opération faillible renvoie `Result<T>` (`core/error/result.dart`, `seale
 - `try/catch` **uniquement** à la frontière I/O (repositories). Le repository
   convertit l'exception technique en `Failure` typé.
 - **Aucune exception ne remonte** au domaine ni à l'UI.
-- **Aucun détail technique** (message d'exception, stack, payload) ne finit dans
-  un `Failure.message` affiché : message présentable côté UI, détail technique
-  → log (cf. §12). Ne jamais interpoler `$e` dans un message destiné à l'écran.
+- **Un `Failure` porte une cause typée (kind/code), jamais de texte UI** : le
+  message affichable est résolu en couche présentation via `FailureL10n`
+  (`core/l10n/failure_l10n.dart`) + clés ARB `error*` (cf. §9). Domaine et data
+  restent i18n-agnostiques ; les tests s'écrivent sur des types, pas sur des
+  strings de locale.
+- **Aucun détail technique** (message d'exception, stack, payload) ne finit à
+  l'écran : détail technique → log (cf. §12). Ne jamais interpoler `$e` dans
+  quoi que ce soit de présenté.
+- Les `switch` exhaustifs (`sealed` + enums) garantissent à la compilation
+  qu'un nouveau `Failure`/kind ne peut pas arriver à l'UI sans traduction.
 
 ---
 
@@ -136,6 +143,11 @@ i18n via `flutter_localizations` + ARB (`lib/l10n/app_*.arb`), `gen-l10n` activ�
 (`generate: true`). Aucune string UI en dur → `AppLocalizations.of(context)`.
 `intl: any` est volontaire (version épinglée par `flutter_localizations`).
 
+**Les messages d'erreur sont de l'i18n comme le reste** : les `Failure` typés
+sont traduits par `FailureL10n` (clés `error*`, en + fr). Ajouter un
+`Failure`/kind sans sa clé ARB ne compile pas (switch exhaustif) — le mapping
+ne peut pas dériver silencieusement.
+
 ---
 
 ## §10 — Sécurité
@@ -195,6 +207,13 @@ widget, puis integration. **Mock à la frontière** (datasources HTTP via
 `mocktail` + override de provider), jamais la logique métier. Tests miroir de
 `lib/` sous `test/`, suffixe `_test.dart`. CI : `dart format --set-exit-if-changed`,
 `flutter analyze` (0 issue), `flutter test`.
+
+**Test d'architecture** (`test/architecture/layer_dependencies_test.dart`) :
+les règles de couches du §1 sont **exécutables**, pas seulement de la prose.
+Le test scanne toutes les features et échoue avec fichier:ligne si `domain/`
+ou `data/` importent Riverpod/Flutter, si `presentation/` importe Dio ou
+`data/`, etc. Toute nouvelle feature est couverte automatiquement — c'est le
+garde-fou principal contre la dérive d'architecture (humaine ou IA).
 
 ---
 
