@@ -113,6 +113,15 @@ DI explicite via Riverpod, rien instancié en dur.
 plateforme-aware (`10.0.2.2` émulateur Android vs `127.0.0.1` iOS sim/desktop/web)
 et surchargeable `--dart-define=API_BASE_URL=...` pour un device physique.
 
+**Web same-origin (US-628, couche B)** : en staging/production, si `kIsWeb`,
+`apiBaseUrl` est **relative** (`/api/v1/apps/<name>`, sans schéma ni host) au
+lieu d'une URL absolue — résolue par Dio contre `window.location.origin`.
+Nécessaire quand le front est servi par le conteneur applicatif lui-même
+(`#628`) ou proxifié par le gateway (`/api/v1/apps/<name>/*`) : same-origin ⇒
+le cookie de session part avec chaque appel API, pas de 401 cross-origin.
+`<name>` vient de `--dart-define=APP_NAME=<slug>` (jamais en dur). Le mobile
+natif garde une baseUrl absolue par flavor (hors proxy).
+
 ---
 
 ## §7 — Theming & a11y
