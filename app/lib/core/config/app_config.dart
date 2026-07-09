@@ -35,17 +35,23 @@ class AppConfig extends Equatable {
       );
 
   /// Config du flavor **staging**.
-  factory AppConfig.staging() => const AppConfig(
+  ///
+  /// Sur web (build servi par le conteneur applicatif ou proxifié par le
+  /// gateway, cf. `_webSameOriginBaseUrl`), la baseUrl est **relative**
+  /// (same-origin). Sur mobile natif (hors proxy), elle reste absolue.
+  factory AppConfig.staging() => AppConfig(
         flavor: Flavor.staging,
         appName: 'RustFlutterBase (staging)',
-        apiBaseUrl: 'https://api.staging.example.com',
+        apiBaseUrl:
+            kIsWeb ? _webSameOriginBaseUrl() : 'https://api.staging.example.com',
       );
 
-  /// Config de **production**.
-  factory AppConfig.production() => const AppConfig(
+  /// Config de **production**. Cf. doc `AppConfig.staging` pour la
+  /// résolution web same-origin.
+  factory AppConfig.production() => AppConfig(
         flavor: Flavor.production,
         appName: 'RustFlutterBase',
-        apiBaseUrl: 'https://api.example.com',
+        apiBaseUrl: kIsWeb ? _webSameOriginBaseUrl() : 'https://api.example.com',
       );
 
   final Flavor flavor;
@@ -66,6 +72,31 @@ class AppConfig extends Equatable {
     final isAndroidEmulator =
         !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
     return isAndroidEmulator ? 'http://10.0.2.2:8080' : 'http://127.0.0.1:8080';
+  }
+
+  /// URL API **relative same-origin** pour le web (US-628, couche B).
+  ///
+  /// Quand le front est servi par le conteneur applicatif lui-même
+  /// (Dockerfile multi-stage, `#628`) ou proxifié par le gateway Praxek
+  /// (`/api/v1/apps/<name>/*`, cf. `appproxy.go` dans le repo `praxek`), le
+  /// front et l'API partagent la MÊME origine. Une `baseUrl` **sans schéma ni
+  /// host** (ex. `/api/v1/apps/tasks`) est résolue par Dio (web →
+  /// `XMLHttpRequest`) contre `window.location.origin` : les requêtes
+  /// restent same-origin/same-site → le cookie de session part avec chaque
+  /// appel (pas de 401 cross-origin). C'est CE fix qui débloque l'auth
+  /// derrière le proxy — pas le Dockerfile, pas le `base-href` (qui ne gère
+  /// que les assets).
+  ///
+  /// `<name>` = slug de l'app, injecté au build, jamais en dur :
+  /// `flutter build web --dart-define=APP_NAME=tasks`. Surchargeable comme
+  /// le reste via `--dart-define=API_BASE_URL=...` (ex. pour un `flutter run
+  /// -d chrome` local qui doit taper un backend séparé, cross-origin,
+  /// intentionnellement).
+  static String _webSameOriginBaseUrl() {
+    const override = String.fromEnvironment('API_BASE_URL');
+    if (override.isNotEmpty) return override;
+    const appSlug = String.fromEnvironment('APP_NAME', defaultValue: 'app');
+    return '/api/v1/apps/$appSlug';
   }
 
   @override
